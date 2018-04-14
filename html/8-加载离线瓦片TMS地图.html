@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>加载离线瓦片地图加载</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
+    <script type="text/javascript" src="http://10.129.56.56:8090/iserver/iClient/forJavaScript/dist/iclient9-openlayers.js"></script>
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<div id="map" class="map"></div>
+<script>
+
+
+    // 定义地图服务URL
+    // satelite: 'http://10.129.51.188:8080/map/jiangxiaqu/satelite/{z}/{x}/{y}.png'
+    // label: 'http://10.129.51.188:8080/map/jiangxiaqu/label/{z}/{x}/{y}.png'
+    // map: 'http://10.129.51.188:8080/map/jiangxiaqu/map/{z}/{x}/{y}.png'
+    // standard: 'http://10.129.51.188:8080/map/jiangxiaqu/standard/{z}/{x}/{y}.png'
+
+    // 离线瓦片数据来源：数据通过水经注软件下载（选择标准TMS瓦片）
+
+    //创建地图
+    var map = new ol.Map({
+        layers: [
+            new ol.layer.Group({
+                layers: [
+                    // 谷歌TMS
+                    // new ol.layer.Tile({
+                    //     source: new ol.source.XYZ({
+                    //         tileUrlFunction: function (tileCoord) {
+                    //             var z = tileCoord[0];
+                    //             var x = tileCoord[1];
+                    //             var y = - tileCoord[2];
+                    //             return "http://localhost:8080/map/谷歌TMS/" + z + "/" + x + "/" + y + ".png";
+                    //         }
+                    //     })
+                    // })
+                    // 标准TMS
+                    new ol.layer.Tile({
+                        source: new ol.source.XYZ({
+                            tileUrlFunction: function (tileCoord) {
+                                var z = tileCoord[0];
+                                var x = tileCoord[1];
+                                // y = Math.pow(2, z) + tileCoord[2] -1;
+                                y = Math.pow(2, z) + tileCoord[2]; //如果有偏移，则不-1
+                                return "http://10.129.56.56:8080/map/武汉市标准TMS瓦片/" + z + "/" + x + "/" + y + ".png";
+                            }
+                        })
+                    }),
+                    new ol.layer.Tile({
+                        source: new ol.source.TileSuperMapRest({
+                            url: "http://10.129.56.56:8090/iserver/services/map-PeaceComm/rest/maps/综治平台",
+                            transparent:true
+                        })
+                    })
+                ]
+            })
+        ],
+        target: 'map',
+        view: new ol.View({
+            center: ol.proj.fromLonLat([114.43944445432024, 30.44326443351204]),
+            zoom: 18
+        })
+    });
+
+</script>
+</body>
+</html>
