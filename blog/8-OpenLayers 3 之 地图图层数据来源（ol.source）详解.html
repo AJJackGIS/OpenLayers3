@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenLayers 3 之 地图图层数据来源（ol.source）详解</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js" type="text/javascript"></script>
+    <style>
+        html, body, .map {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map" class="map"></div>
+<script type="text/javascript">
+    var map = new ol.Map({
+        target: 'map', // 容器ID
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    wrapX: false,
+                    tileUrlFunction: tileUrlFunction
+                })
+            })
+        ],
+        view: new ol.View({ // 视图
+            center: ol.proj.fromLonLat([114.41, 30.82]),
+            zoom: 8
+        })
+    });
+
+    // Bing在线地图的url构造函数
+    function tileUrlFunction(coord) {
+        return getVETileUrl(coord[0], coord[1], -coord[2] - 1);
+    }
+
+    // 中文版的Bing地图
+    function getVETileUrl(z, x, y) {
+        for (var a = "", c = x, d = y, e = 0; e < z; e++) {
+            a = ((c & 1) + 2 * (d & 1)).toString() + a;
+            c >>= 1;
+            d >>= 1
+        }
+        return 'http://dynamic.t0.tiles.ditu.live.com/comp/ch/' + a + '?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=111&ur=CN'
+    }
+
+    // 其他的比如Vector\GeoJSON\HeatMap在前面已经用过了。。。。
+
+</script>
+</body>
+</html>
