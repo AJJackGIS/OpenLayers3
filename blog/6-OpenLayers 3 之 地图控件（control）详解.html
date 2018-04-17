@@ -24,14 +24,17 @@
             font-size: 12px;
             font-weight: bold;
         }
-        .ol-rotate{
-            right:40px;
+
+        .ol-rotate {
+            right: 40px;
         }
-        .ol-scale-line{
+
+        .ol-scale-line {
             left: 175px;
         }
-        .ol-zoomslider{
-            top:100px;
+
+        .ol-zoomslider {
+            top: 100px;
             left: 9px;
         }
     </style>
@@ -44,29 +47,30 @@
 <script>
 
     var map = new ol.Map({
-        controls: [
-            new ol.control.FullScreen() // 全屏控件
-            , new ol.control.Attribution()  // 地图属性控件
-            , new ol.control.MousePosition({
+        controls: ol.control.defaults().extend([
+            new ol.control.FullScreen(), // 全屏控件
+            new ol.control.Attribution(),   // 地图属性控件
+            new ol.control.MousePosition({
                 coordinateFormat: ol.coordinate.createStringXY(4),
                 projection: 'EPSG:4326',
                 className: 'custom-mouse-position',
                 target: document.getElementById('mouse-position')
-            }) // 鼠标位置控件--显示实时坐标
-            , new ol.control.OverviewMap({
-                collapsed: false
-            }) // 鹰眼
-            , new ol.control.Rotate({
+            }), // 鼠标位置控件--显示实时坐标
+            new ol.control.OverviewMap({
+                collapsed: false,
+                tipLabel: "鹰眼"
+            }), // 鹰眼
+            new ol.control.Rotate({
                 autoHide: false
-            }) // 旋转， 当不为0时出现
-            , new ol.control.ScaleLine() // 比例尺
-            , new ol.control.Zoom({
-                zoomInTipLabel :"放大",
+            }), // 旋转， 当不为0时出现
+            new ol.control.ScaleLine(), // 比例尺
+            new ol.control.Zoom({
+                zoomInTipLabel: "放大",
                 zoomOutTipLabel: "缩小"
-            }) // 放大缩小
-            , new ol.control.ZoomSlider() // 缩放条
-            , new ol.control.ZoomToExtent()
-        ],
+            }),  // 放大缩小
+            new ol.control.ZoomSlider(), // 缩放条
+            new ol.control.ZoomToExtent()
+        ]),
         target: 'map', // 容器ID
         layers: [
             new ol.layer.Tile({
