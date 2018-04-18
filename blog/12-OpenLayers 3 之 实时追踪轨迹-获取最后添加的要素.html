@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenLayers 3 之 实时追踪轨迹-获取最后添加的要素</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.5/build/ol-debug.js" type="text/javascript"></script>
+    <style>
+        html, body, .map {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map" class="map"></div>
+<script type="text/javascript">
+
+    // 默认样式
+    var defaultStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+            src: "./data/image/default.png"
+        })
+    });
+    // 报警样式
+    var alarmStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+            src: "./data/image/alarm.png"
+        })
+    });
+
+    var vector = new ol.layer.Vector({
+        source: new ol.source.Vector()
+    });
+
+    var map = new ol.Map({
+        target: 'map', // 容器ID
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            vector
+        ],
+        view: new ol.View({ // 视图
+            center: ol.proj.fromLonLat([114.41, 30.82]),
+            zoom: 8
+        })
+    });
+
+    // vector的getFeatures方法返回的集合不一定是按照顺序排序的，RTree
+
+    var maxNum = -1; // 维护最后一个点的ID
+
+    setInterval(function () {
+
+        // 重置vector中最后一个要素的样式
+        // var features = vector.getSource().getFeatures();
+        // if (features.length != 0){
+        //     features[features.length - 1].setStyle(defaultStyle); // 这种方式测试到大概10个左右就乱了
+        // }
+
+        // 根据getFeatureById方法寻找feature
+        if (maxNum != -1) {
+            vector.getSource().getFeatureById(maxNum).setStyle(defaultStyle);
+        }
+
+        // 随机生成一个坐标点
+        var randomX = Math.random();
+        var randomY = Math.random();
+        var x = 114 + randomX;
+        var y = 30 + randomY;
+        // 创建一个要素
+        var feature = new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([x, y]))
+        });
+        feature.setId(++maxNum); //***********设置feature的ID
+        // 设置最新的这个要素的样式
+        feature.setStyle(alarmStyle);
+        // 添加最新的这个要素
+        vector.getSource().addFeature(feature);
+        // 平移居中这个要素
+        map.getView().animate({
+            center: feature.getGeometry().getCoordinates()
+        })
+    }, 2000)
+
+</script>
+</body>
+</html>
