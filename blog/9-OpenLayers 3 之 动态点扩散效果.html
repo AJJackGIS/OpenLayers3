@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenLayers 3 之 动态点扩散效果</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.5/build/ol-debug.js" type="text/javascript"></script>
+    <style>
+        html, body, .map {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        /*动画*/
+        @keyframes myfirst {
+            from {
+                /*红色 0.9透明度*/
+                background: rgba(255, 0, 0, 0.9);
+                /*形变为原来的0倍*/
+                transform: scale(0, 0);
+            }
+            to {
+                /*黑色 全透明*/
+                background: rgba(0, 0, 0, 0);
+                /*形变为原来的2倍*/
+                transform: scale(1.5, 1.5);
+            }
+        }
+
+        .popup {
+            height: 50px;
+            width: 50px;
+            border-radius: 25px;
+            animation: myfirst 3s infinite;
+        }
+    </style>
+</head>
+<body>
+<div id="map" class="map"></div>
+<div id="popupContainer">
+    <div class="popup"></div>
+</div>
+<script type="text/javascript">
+
+
+    // 方案一
+    var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+            features: [
+                new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([114.41, 30.82]))
+                }),
+                new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([114.41, 31.82]))
+                }),
+                new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([114.41, 32.82]))
+                }),
+                new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([114.41, 33.82]))
+                })
+            ]
+        }),
+        style: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: "./data/image/video.gif", // 闪缩的GIF ---- 但是加载到地图上是不会闪缩的，转变成了一张静态图片
+                size: [72, 72]
+            })
+        })
+    });
+
+    // 方案二 -- 采用页面静态dom叠加OverLay的方式，缺点是只能添加一个
+    var overLay = new ol.Overlay({
+        element: document.getElementById("popup"),
+        positioning:"center-center",
+        position: ol.proj.fromLonLat([114.41, 30.82]) // 使用css3 动画的方式
+    });
+
+    var map = new ol.Map({
+        target: 'map', // 容器ID
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            vector
+        ],
+        view: new ol.View({ // 视图
+            center: ol.proj.fromLonLat([114.41, 30.82]),
+            zoom: 8
+        }),
+        overlays: [overLay]
+    });
+
+    // 方案三 -- 采用动态生成dom叠加OverLay的方式，可以根据feature的个数添加多个
+    vector.getSource().getFeatures().forEach(function (feature) {
+        // 创建dom元素
+        var div = document.createElement("div");
+        div.className = "popup";
+        var overLay = new ol.Overlay({
+            element: div,
+            positioning:"center-center",
+            position: feature.getGeometry().getCoordinates()
+        });
+        map.addOverlay(overLay);
+    });
+
+
+</script>
+</body>
+</html>
