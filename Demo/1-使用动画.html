@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>动画</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .btnContainer {
+            position: absolute;
+            top: 10px;
+            left: 50px;
+        }
+
+        button {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+<!--地图容器-->
+<div id="map" class="map"></div>
+<div class="btnContainer">
+    <button id="rotate-left" title="Rotate clockwise">↻</button>
+    <button id="rotate-right" title="Rotate counterclockwise">↺</button>
+    <button id="pan-to-london">平移到伦敦</button>
+    <button id="elastic-to-moscow">弹到莫斯科</button>
+    <button id="bounce-to-istanbul">跳到伊斯坦布尔</button>
+    <button id="spin-to-rome">旋转到罗马</button>
+    <button id="fly-to-bern">飞到伯尔尼</button>
+    <button id="rotate-around-rome">围绕罗马旋转</button>
+    <button id="tour">巡回</button>
+    <button id="home">重置</button>
+</div>
+<script>
+
+    var wuhan = ol.proj.fromLonLat([114.311831, 30.584501]);
+    var london = ol.proj.fromLonLat([-0.12755, 51.507222]);
+    var moscow = ol.proj.fromLonLat([37.6178, 55.7517]);
+    var istanbul = ol.proj.fromLonLat([28.9744, 41.0128]);
+    var rome = ol.proj.fromLonLat([12.5, 41.9]);
+    var bern = ol.proj.fromLonLat([7.4458, 46.95]);
+
+    var view = new ol.View({
+        center: wuhan,
+        zoom: 4
+    });
+
+    var map = new ol.Map({
+        // 图层(数据)
+        layers: [
+            // Tile(瓦片类型图层)
+            new ol.layer.Tile({
+                // 瓦片数据源
+                source: new ol.source.OSM()
+            })
+        ],
+        // 对应的dom元素
+        target: 'map',
+        // 视图(渲染)
+        view: view
+    });
+
+    // An elastic easing method (from https://github.com/DmitryBaranovskiy/raphael).
+    function elastic(t) {
+        return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
+    }
+
+    // A bounce easing method (from https://github.com/DmitryBaranovskiy/raphael).
+    function bounce(t) {
+        var s = 7.5625, p = 2.75, l;
+        if (t < (1 / p)) {
+            l = s * t * t;
+        } else {
+            if (t < (2 / p)) {
+                t -= (1.5 / p);
+                l = s * t * t + 0.75;
+            } else {
+                if (t < (2.5 / p)) {
+                    t -= (2.25 / p);
+                    l = s * t * t + 0.9375;
+                } else {
+                    t -= (2.625 / p);
+                    l = s * t * t + 0.984375;
+                }
+            }
+        }
+        return l;
+    }
+
+    // 给按钮注册点击事件
+    function onClick(id, callback) {
+        document.getElementById(id).addEventListener('click', callback);
+    }
+
+    onClick("home", function () {
+        view.animate({
+            center: wuhan, // center
+            duration: 2000 // 动画持续时间
+        });
+    });
+
+
+    // interface AnimateOptions {
+    //     center?: ol.Coordinate | undefined;
+    //     zoom?: number | undefined;
+    //     resolution?: number | undefined;
+    //     rotation?: number | undefined;
+    //     anchor?: number | undefined;
+    //     duration?: number | undefined;
+    //     easing?: ((t: number) => number) | undefined;
+    // }
+
+
+    // 向左旋转90°
+    onClick('rotate-left', function () {
+        view.animate({
+            rotation: view.getRotation() + Math.PI / 2 // rotation
+        });
+    });
+
+    // 向右旋转90°
+    onClick('rotate-right', function () {
+        view.animate({
+            rotation: view.getRotation() - Math.PI / 2
+        });
+    });
+
+    // 平移到伦敦
+    onClick('pan-to-london', function () {
+        view.animate({
+            center: london, // center
+            duration: 2000 // 动画持续时间
+        });
+    });
+
+    // 弹到莫斯科
+    onClick('elastic-to-moscow', function () {
+        view.animate({
+            center: moscow,
+            duration: 2000,
+            easing: elastic
+        });
+    });
+
+    // 跳到伊斯坦布尔
+    onClick('bounce-to-istanbul', function () {
+        view.animate({
+            center: istanbul,
+            duration: 2000,
+            easing: bounce
+        });
+    });
+
+    // 旋转到罗马
+    onClick('spin-to-rome', function () {
+        // Rotation animation takes the shortest arc, so animate in two parts
+        var center = view.getCenter();
+        view.animate({
+            center: [
+                center[0] + (rome[0] - center[0]) / 2,
+                center[1] + (rome[1] - center[1]) / 2
+            ],
+            rotation: Math.PI,
+            easing: ol.easing.easeIn
+        }, {
+            center: rome,
+            rotation: 2 * Math.PI,
+            easing: ol.easing.easeOut
+        }); // 可以设置多个animate对象
+    });
+
+    // 飞到伯尔尼
+    onClick('fly-to-bern', function () {
+        var zoom = view.getZoom();
+        view.animate({
+            center: bern,
+            duration: 2000
+        });
+        view.animate({
+            zoom: zoom - 1,
+            duration: 2000 / 2
+        }, {
+            zoom: zoom,
+            duration: 2000 / 2
+        }); // 叠加多个动画
+    });
+
+    function tour() {
+        var locations = [london, bern, rome, moscow, istanbul];
+        var index = -1;
+        var flag = setInterval(function () {
+            index++;
+            if (index == locations.length) {
+                clearInterval(flag);
+            } else {
+                var zoom = view.getZoom();
+                view.animate({
+                    center: locations[index],
+                    duration: 1000
+                });
+                view.animate({
+                    zoom: zoom - 1,
+                    duration: 1000 / 2
+                }, {
+                    zoom: zoom,
+                    duration: 1000 / 2
+                }); // 叠加多个动画
+            }
+        }, 1500);
+    }
+
+    // 巡回 每个地方都去一遍
+    onClick('tour', tour);
+
+</script>
+</body>
+</html>
