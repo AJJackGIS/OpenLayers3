@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>拉框选择</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.4/build/ol-debug.js"></script>
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #select {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background-color: rgba(117, 117, 117, 0.6);
+            color: white;
+        }
+
+        #infoBox {
+            padding: 10px;
+        }
+
+        .ol-dragbox {
+            background-color: rgba(255, 255, 255, 0.4);
+            border-color: rgba(100, 150, 0, 1);
+        }
+    </style>
+</head>
+<body>
+<!--地图容器-->
+<div id="map" class="map"></div>
+<div id="select">
+    <div id="infoBox"></div>
+</div>
+<script>
+
+    var infoBox = document.getElementById("infoBox");
+    var selectInteraction = new ol.interaction.Select(); // 选择交互
+    var selectFeatures = selectInteraction.getFeatures(); // 获取选择的要素
+    selectFeatures.on(["add", "remove"], function () {
+        var names = selectFeatures.getArray().map(function (feature) {
+            return feature.get("name");
+        });
+        if (names.length > 0) {
+            infoBox.innerHTML = "您选择的是：" + names.join(', ');
+        } else {
+            infoBox.innerHTML = '未选择';
+        }
+    });
+
+    var boxDrag = new ol.interaction.DragBox({
+        condition: ol.events.condition.shiftKeyOnly
+    });
+    boxDrag.on('boxstart', function() {
+        selectFeatures.clear();
+    });
+    boxDrag.on("boxend", function () {
+        var extent = boxDrag.getGeometry().getExtent();
+        vector.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+            selectFeatures.push(feature);
+        })
+    });
+
+    var style = new ol.style.Style({
+        fill: new ol.style.Fill({ //矢量图层填充颜色，以及透明度
+            color: 'rgba(117, 117, 117, 0.6)'
+        }),
+        stroke: new ol.style.Stroke({ //边界样式
+            color: '#319FD3',
+            width: 1
+        }),
+        text: new ol.style.Text({ //文本样式
+            font: '14px Calibri,sans-serif',
+            fill: new ol.style.Fill({
+                color: '#000'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#fff',
+                width: 3
+            })
+        })
+    });
+    var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+            format: new ol.format.GeoJSON({
+                defaultDataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+            }),
+            url: "./data/global.json"
+        }),
+        style: function (feature) {
+            style.getText().setText(feature.get("name"));
+            return style;
+        }
+    });
+
+    // 创建一个Map对象
+    var map = new ol.Map({
+        // 图层(数据)
+        layers: [
+            // Tile(瓦片类型图层)
+            new ol.layer.Tile({
+                // 瓦片数据源
+                source: new ol.source.OSM()
+            }),
+            vector
+        ],
+        // 对应的dom元素
+        target: 'map',
+        // 视图(渲染)
+        view: new ol.View({
+            // 地图中心点（默认为EPSG:3857坐标系统），需要EPSG:4326经纬度转换
+            center: ol.proj.fromLonLat([114.311831, 30.584501]),
+            zoom: 4
+        }),
+        interactions: ol.interaction.defaults({
+            shiftDragZoom: true // false 取消shift拖拽zoom
+        }).extend([
+            selectInteraction,
+            boxDrag
+        ])
+    });
+
+
+</script>
+</body>
+</html>
