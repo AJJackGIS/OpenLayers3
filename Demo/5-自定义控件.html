@@ -8,6 +8,7 @@
     <title>自定义控件</title>
     <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
     <script src="https://openlayers.org/en/v4.6.4/build/ol-debug.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
     <style>
         html, body, #map {
             width: 100%;
@@ -18,29 +19,34 @@
         }
 
         /*自定义控件样式*/
-        .ol-closelight {
+        .ol-light {
             position: absolute;
-            top: 0.5em;
-            right: 0.5em;
+            top: 4.5em;
+            left: 0.5em;
             text-align: left;
         }
 
-        .ol-closelight button {
-            background-color: transparent!important;
+        .ol-light button {
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 20px 20px;
         }
 
-        .ol-closelight button:hover {
-            background-color: transparent;
+        .ol-light .on {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC30lEQVRYR82XjVEVQRCEpyPQDMAIhAiECNQIxAjECMQIxAjkRQBEIEQgRCBmgBGM9V3NXO3t2/t5J1W6VdQBd7Pb09M9cyf7i+XuN2bmko7XbqO1gcS5u3OVtHqfyUB3PzCzH2b2XtJFDXYKgLufmNk3MzuUdDeW6FIAxL+Q9FBuNAbA3ffN7Gc8ux5A0HxlZq/N7Kautbt3mUmCqX6FNl6Z2UYSTIyu2dpFNhz0rMVCoyxZtt9mdlCzVj8/CyBYeGNmR5JOl4jW3c+DMdibXD2AEBxUQ9ug1mM7RAwlGBVZVRq08c7MrjOmBJC1JubMzL5KemxQTE0/QG91DxDnkjaNmOcRw74sAMCqlQB4CKvBAutO0mFuFlq4rA6mziz0kQsgb0sWQ6wv83AzO8nktjTg7kdmRq0fU8HuDjhsxZVDuX+Vm8R9MqL2gIE5bNsx6O4kRiwM0T37tVSEBGGr+xDjVmniIA7hWbLdsm1LS7MAgpHvkfl+SxeV0ACBiGHiuM64BrEEAPShXES5iw0R6rJGFFl2g4VMS1sVXW02m0Kw6AjWbiXxe7fCtr1gJd0qBEKG5eqHz1MBKIZTec4GAPgZ9eZCYL1NnhBA2pxrrtP/QwMtexR1w980oIG3x2KqnkFDmpwHswyEeLDV3hInxCDCAb8k0fsnVxNACOYhPVz0AjYbdcPYc/H/vdacGACIB3mNAjl27AVTZDaYEWV6Rc8f9Ax3p3zYDyZxWN+Oy2FEk/kSG9LvcUJfv6jtaIeb6pjujo5oaNkDPkrqnFcC4B+MWq4MjdYo5h71/SwpR2s2Gf7+NKaTSIAk+bnIrrpIhIUjkiVG7pmk6xApGXI4PaXPbk6AAwaWPFyVoRVC6WYHVhm4EwORbfb5FoDF8yKD1wDIt95/BqD86KhBTH6EtBCvYQAA+Z1Q7kn9eXVf9Ia8ugShg3xFKwHc119IS4S9MwOFJRFjjnEsOfsR0gL0B4FSjPqklLcQAAAAAElFTkSuQmCC');
         }
 
-        .ol-closelight .on {
-            background-size: cover;
-            background-image: url(./image/light_on.png);
+        .ol-light .off {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABeklEQVRYR+2X703EMAzF39sAJkA3AccEcBMAG7DCTQBMwApswDEBMAHcBNwGsMFDFqlUlUscJ6B+IVLVD7Xjn//ETomZF2e2jzCApAsA5wCW6TEf3tKzIfkYcaoaQJIZvANw5hh4BrAmaVDuqgKQdJWMH7g7fgt8Joh7T94FkGQeP3kbZb6feJEoAkgyj98B1Ho+5bBILEjae+/yAG4AXDd6P6jdkrR9mgB2AI46AXYkF2GAVPWvncYHdUuDOfNjZVPQWXxTQyuSdjz/AUIRsKP38Us1cJg7it4xtLyddkK8kMy2bw/ABs9DJ8AlyU34GA4KknqiUPTebNTMAqsFgzgORmJrk7PUhqsATCjNhAhElfFqgFE6amZDsfdPo+imYKogSaVUkAztGRJO6ZgXIFiIrnhLBKwYs1EguXKtjgRaAbI2Sl0vNA0jXvTItkRg3iJMF5VSCvZePJpnQU4xdcehPW+9lvsXAOP/heyVy6uPcA14G0a/zw7wBWWjhCEstbegAAAAAElFTkSuQmCC');
         }
 
-        .ol-closelight .off {
-            background-size: cover;
-            background-image: url(./image/light_off.png);
+        .ol-light-mask {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
         }
 
     </style>
@@ -51,19 +57,19 @@
 <script>
 
     // 自定义控件(关灯开灯)
-    ol.control.CloseLight = function (opt_options) {
+    ol.control.Light = function (opt_options) {
         var options = opt_options || {}; // 参数
-        this.openText = options.openText ? options.openText : "开灯"; // 开灯的文字
-        this.closeText = options.closeText ? options.closeText : "关灯"; // 关灯的文字
+        this.openText = options.openText ? options.openText : "开灯"; // 开灯的默认文字
+        this.closeText = options.closeText ? options.closeText : "关灯"; // 关灯的默认文字
 
-        var className = "ol-unselectable ol-control"; // 控件必须的样式
-        var closeLightClass = "ol-closelight"; // 自定义控件的样式
+        var className = "ol-unselectable ol-control"; // 控件默认样式
+        var closeLightClass = "ol-light"; // 自定义控件的样式
 
         this.element = document.createElement("div"); // 控件容器
-        this.element.className = className + " " + closeLightClass; // 设置控件的样式
+        this.element.className = closeLightClass + " " + className; // 设置控件的样式
 
         this.button = document.createElement("button"); // 开关按钮
-        this.button.setAttribute("title", this.closeText);
+        this.button.setAttribute("title", this.closeText); // 设置提示文字
         this.button.className = "off";
         this.element.appendChild(this.button);
 
@@ -80,35 +86,42 @@
     };
 
     // 指定控件继承关系
-    ol.inherits(ol.control.CloseLight, ol.control.Control);
+    ol.inherits(ol.control.Light, ol.control.Control);
 
     // 按钮执行事件
-    ol.control.CloseLight.prototype.execute = function () {
+    ol.control.Light.prototype.execute = function () {
         if (this.button.getAttribute("title") == this.openText) {
-            console.log("开灯");
-            this.button.setAttribute("title", this.closeText);
-            this.button.classList.remove("on");
-            this.button.className = "off";
             this.lightOn();
         } else {
-            console.log("关灯");
-            this.button.setAttribute("title", this.openText);
-            this.button.classList.remove("off");
-            this.button.className = "on";
             this.lightOff();
         }
     };
 
     // 开灯
-    ol.control.CloseLight.prototype.lightOn = function () {
-
+    ol.control.Light.prototype.lightOn = function () {
+        // 修改按钮文字及样式
+        this.button.setAttribute("title", this.closeText);
+        this.button.classList.remove("on");
+        this.button.className = "off";
+        this.button.blur(); // 失去焦点，否则有点击的border
+        // 删除蒙版
+        var mb = document.getElementsByClassName("ol-light-mask")[0];
+        mb.parentNode.removeChild(mb);
     };
 
     // 关灯
-    ol.control.CloseLight.prototype.lightOff = function () {
-
+    ol.control.Light.prototype.lightOff = function () {
+        // 修改按钮文字及样式
+        this.button.setAttribute("title", this.openText);
+        this.button.classList.remove("off");
+        this.button.className = "on";
+        this.button.blur();
+        // 添加蒙版
+        var mb = document.createElement("div");
+        mb.className = "ol-light-mask";
+        var viewPort = this.getMap().getViewport();
+        viewPort.insertBefore(mb, viewPort.childNodes[0]);
     };
-
 
     var map = new ol.Map({
         layers: [
@@ -119,9 +132,9 @@
         target: 'map',
         view: new ol.View({
             center: ol.proj.fromLonLat([114.311831, 30.584501]),
-            zoom: 12
+            zoom: 4
         }),
-        controls: ol.control.defaults().extend([new ol.control.CloseLight()])
+        controls: ol.control.defaults().extend([new ol.control.Light()])
     });
 
 </script>
