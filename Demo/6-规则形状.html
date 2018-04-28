@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>规则形状</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.4/build/ol-debug.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+
+    </style>
+</head>
+<body>
+<div id="map" class="map"></div>
+</div>
+<script>
+
+    // 正方形
+    var square = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            fill: new ol.style.Fill({
+                color: "#FF00FF"
+            }),
+            points: 4, // 多边形的边数/星星的个数
+            radius: 40, // 多边形的半径
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            }),
+            angle: Math.PI / 4 // 如果不设置angle属性，默认会有一个点垂直向上， 正方向旋转45°
+        })
+    });
+
+    // 三角形
+    var triangle = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            fill: new ol.style.Fill({
+                color: "#FF00FF"
+            }),
+            points: 3,
+            radius: 40,
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            })
+        })
+    });
+
+    // 五角星
+    var star = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            fill: new ol.style.Fill({
+                color: "#FF00FF"
+            }),
+            points: 5,
+            radius1: 40, // 外半径
+            radius2: 20, // 内半径
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            })
+        })
+    });
+
+    // 十字架
+    var cross = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 4,
+            radius1: 40,
+            radius2: 0,
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            })
+        })
+    });
+
+    // 删除
+    var del = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 4,
+            radius1: 40,
+            radius2: 0,
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            }),
+            angle: Math.PI / 4
+        })
+    });
+
+    // 圆
+    var circle = new ol.style.Style({
+        image: new ol.style.RegularShape({
+            fill: new ol.style.Fill({
+                color: "#FF00FF"
+            }),
+            points: 100,
+            radius: 40,
+            stroke: new ol.style.Stroke({
+                color: "#6B8E23",
+                width: 4
+            })
+        })
+    });
+
+    var features = new Array();
+
+    var f1 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.311831, 30.584501])));
+    f1.setStyle(square);
+    var f2 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.411831, 30.584501])));
+    f2.setStyle(triangle);
+    var f3 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.511831, 30.584501])));
+    f3.setStyle(star);
+    var f4 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.611831, 30.584501])));
+    f4.setStyle(cross);
+    var f5 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.711831, 30.584501])));
+    f5.setStyle(del);
+    var f6 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([114.811831, 30.584501])));
+    f6.setStyle(circle);
+
+    features.push(f1, f2, f3, f4, f5, f6);
+
+    var map = new ol.Map({
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: features
+                })
+            })
+        ],
+        target: 'map',
+        view: new ol.View({
+            center: ol.proj.fromLonLat([114.311831, 30.584501]),
+            zoom: 11
+        })
+    });
+
+</script>
+</body>
+</html>
