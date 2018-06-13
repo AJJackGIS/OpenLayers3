@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>地图风格</title>
+    <link rel="stylesheet" href="../plugin/ol/css/ol.css" type="text/css">
+    <script src="../plugin/ol/build/ol-debug.js" type="text/javascript"></script>
+    <script src="../plugin/jquery/jquery-1.11.0.js"></script>
+    <script src="./data/charts.js"></script>
+    <script src="./data/charts_map.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.1.0.rc2/echarts.min.js"></script>
+    <script src="http://echarts.baidu.com/asset/map/js/china.js"></script>
+    <style>
+        html, body, .container {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            /*background: -moz-linear-gradient(top, #09506E 0%, #0C6991 100%);*/
+            /*background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #09506E), color-stop(100%, #0C6991));*/
+            /*background: -webkit-linear-gradient(top, #09506E 0%, #0C6991 100%);*/
+            /*background: -o-linear-gradient(top, #09506E 0%, #0C6991 100%);*/
+            /*background: -ms-linear-gradient(top, #09506E 0%, #0C6991 100%);*/
+            /*background: linear-gradient(to bottom, #09506E 0%, #0C6991 100%);*/
+            background: url("bg1920.jpg") no-repeat;
+        }
+
+        .content {
+            position: absolute;
+            /*background-color: rgba(44, 44, 44, 0.2);*/
+            z-index: 9999;
+            text-align: center;
+            border: 1px solid #cccccc;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box; /* Firefox */
+            -webkit-box-sizing: border-box; /* Safari */
+        }
+
+        table {
+            table-layout: fixed;
+            empty-cells: show;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .table {
+            color: #fff;
+            font-size: 12px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .table th {
+            background-repeat: repeat-x;
+        }
+
+        .table td, .table th {
+            border: 1px solid #cad9ea;
+            padding: 0 1em 0;
+        }
+
+        .table tr.alter {
+            background-color: #12536f;
+        }
+
+        .ol-popup {
+            position: absolute;
+            background-color: #0b6185;
+            -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+            filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #0b6185;
+            bottom: 12px;
+            left: -50px;
+            color: white;
+        }
+
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .ol-popup:after {
+            border-top-color: #0b6185;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+
+        .ol-popup-closer {
+            text-decoration: none;
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            color: white;
+        }
+
+        #popup-content {
+            width: 300px;
+            height: auto;
+            font-size: 12px;
+        }
+
+        .ol-popup-closer:after {
+            content: "✖";
+        }
+
+        /*动画*/
+        @keyframes myfirst {
+            from {
+                /*红色 0.9透明度*/
+                background: rgba(255, 0, 0, 0.9);
+                /*形变为原来的0倍*/
+                transform: scale(0, 0);
+            }
+            to {
+                /*黑色 全透明*/
+                background: rgba(0, 0, 0, 0);
+                /*形变为原来的2倍*/
+                transform: scale(1.5, 1.5);
+            }
+        }
+
+        .popup {
+            height: 50px;
+            width: 50px;
+            border-radius: 25px;
+            animation: myfirst 3s infinite;
+        }
+    </style>
+    <script>
+        $(function () {
+            changeSize();
+            $(window).on("resize", function () {
+                changeSize();
+            });
+            initMap();
+            initCharts();
+        });
+
+        function changeSize() {
+            var height = $(window).height();
+            var width = $(window).width();
+
+            $(".map").css("top", 0);
+            $(".map").css("left", 0);
+            $(".map").css("width", width);
+            $(".map").css("height", height);
+
+            $(".left_1").css("top", 0);
+            $(".left_1").css("left", 0);
+            $(".left_1").css("width", width / 4);
+            $(".left_1").css("height", height / 3);
+
+            $(".left_2").css("top", height / 3);
+            $(".left_2").css("left", 0);
+            $(".left_2").css("width", width / 4);
+            $(".left_2").css("height", height / 3);
+
+            $(".left_3").css("bottom", 0);
+            $(".left_3").css("left", 0);
+            $(".left_3").css("width", width / 4);
+            $(".left_3").css("height", height / 3);
+
+            $(".right_1").css("top", 0);
+            $(".right_1").css("right", 0);
+            $(".right_1").css("width", width / 4);
+            $(".right_1").css("height", height / 3);
+
+            $(".right_2").css("top", height / 3);
+            $(".right_2").css("right", 0);
+            $(".right_2").css("width", width / 4);
+            $(".right_2").css("height", height / 3);
+
+            $(".right_3").css("bottom", 0);
+            $(".right_3").css("right", 0);
+            $(".right_3").css("width", width / 4);
+            $(".right_3").css("height", height / 3);
+
+            $(".bottom_1").css("bottom", 0);
+            $(".bottom_1").css("left", width / 4);
+            $(".bottom_1").css("width", width / 4);
+            $(".bottom_1").css("height", height / 3);
+
+            $(".bottom_2").css("bottom", 0);
+            $(".bottom_2").css("right", width / 4);
+            $(".bottom_2").css("width", width / 4);
+            $(".bottom_2").css("height", height / 3);
+        }
+
+        function initMap() {
+            var colorMap = {
+                "大潭村": "	rgb(187,232,251);rgb(122,216,254)",
+                "牌楼舒村": "	rgb(187,232,251);rgb(122,216,254)",
+                "汪田村": "rgb(187,232,251);rgb(122,216,254)",
+                "泉岗村": "rgb(187,232,251);rgb(122,216,254)",
+                "杨店村": "rgb(187,232,251);rgb(122,216,254)",
+                "邬家山村": "	rgb(187,232,251);rgb(122,216,254)",
+                "大邱村": "rgb(187,232,251);rgb(122,216,254)",
+                "同兴村": "rgb(187,232,251);rgb(122,216,254)",
+                "九夫村": "rgb(187,232,251);rgb(122,216,254)",
+                "大舒村": "rgb(187,232,251);rgb(122,216,254)",
+                "宗黄村": "rgb(187,232,251);rgb(122,216,254)",
+                "佛祖岭村": "	rgb(187,232,251);rgb(122,216,254)",
+                "群建村": "rgb(187,232,251);rgb(122,216,254)",
+                "湖口村": "rgb(187,232,251);rgb(122,216,254)"
+            };
+
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            var pixelRatio = ol.has.DEVICE_PIXEL_RATIO;
+
+            var style = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color:"#12536F"
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#fff',
+                    width: 1.5
+                }),
+                text: new ol.style.Text({
+                    font: '14px Calibri,sans-serif',
+                    fill: new ol.style.Fill({
+                        color: '#000'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#fff',
+                        width: 3
+                    })
+                })
+            });
+
+            var countryLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    format: new ol.format.GeoJSON({
+                        defaultDataProjection: 'EPSG:3857',
+                        featureProjection: 'EPSG:3857'
+                    }),
+                    url: "./data/行政村边界.json"
+                }),
+                style: function (feature, resolution) {
+                    // var color = colorMap[feature.get("name")];
+                    // var colorFrom = color.split(";")[0];
+                    // var colorTo = color.split(";")[1];
+                    // var extent = feature.getGeometry().getExtent();
+                    // var grad = context.createLinearGradient(0, 0, ol.extent.getWidth(extent) / resolution * pixelRatio, 0);
+                    // grad.addColorStop(0, colorFrom);
+                    // grad.addColorStop(1, colorTo);
+                    // style.getFill().setColor(grad);
+                    style.getText().setText(resolution < 5000 ? feature.get('name') : '');
+                    return style;
+                }
+            });
+
+            var roadLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    format: new ol.format.GeoJSON({
+                        defaultDataProjection: 'EPSG:3857',
+                        featureProjection: 'EPSG:3857'
+                    }),
+                    url: "./data/道路_C.json"
+                }),
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: '#FFE4B5',
+                        width: 1
+                    })
+                })
+            });
+
+            var buildLayer_C = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    format: new ol.format.GeoJSON({
+                        defaultDataProjection: 'EPSG:3857',
+                        featureProjection: 'EPSG:3857'
+                    }),
+                    url: "./data/建筑_C.json"
+                }),
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color:"#008B8B"
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#fff',
+                        width: 1.5
+                    })
+                })
+            });
+
+            var buildLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    format: new ol.format.GeoJSON({
+                        defaultDataProjection: 'EPSG:3857',
+                        featureProjection: 'EPSG:3857'
+                    }),
+                    url: "./data/B区楼栋.json"
+                }),
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color:"#008B8B"
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#fff',
+                        width: 1.5
+                    })
+                })
+            });
+
+
+            var vector = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: [
+                        new ol.Feature({
+                            geometry: new ol.geom.Point([12737609.712869806, 3563666.241968558])
+                        }),
+                        new ol.Feature({
+                            geometry: new ol.geom.Point([12739960.151489576, 3557016.220507748])
+                        }),
+                        new ol.Feature({
+                            geometry: new ol.geom.Point([12745979.567467034, 3559691.516497729])
+                        }),
+                        new ol.Feature({
+                            geometry: new ol.geom.Point([12742253.262338132, 3565386.0751049747])
+                        }),
+                        new ol.Feature({
+                            geometry: new ol.geom.Point([12741985.732739132, 3560474.9960376523])
+                        })
+                    ]
+                })
+            });
+
+
+            var highlightedStyle = new ol.style.Style({
+                fill: new ol.style.Fill({ //矢量图层填充颜色，以及透明度
+                    color: 'rgba(117, 117, 117, 0.6)'
+                }),
+                stroke: new ol.style.Stroke({ //边界样式
+                    color: '#319FD3',
+                    width: 1
+                }),
+                text: new ol.style.Text({ //文本样式
+                    font: '14px Calibri,sans-serif',
+                    fill: new ol.style.Fill({
+                        color: '#000'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#fff',
+                        width: 3
+                    })
+                })
+            });
+
+            // 高亮图层
+            var highlightedLayer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                style:highlightedStyle
+            });
+
+            var map = new ol.Map({
+                target: 'map',
+                layers: [ countryLayer, roadLayer, buildLayer_C, buildLayer, highlightedLayer, vector],
+                view: new ol.View({
+                    center: [
+                        12741440.91430476,
+                        3558131.624356005],
+                    zoom: 13
+                }),
+                controls: ol.control.defaults({
+                    zoom: false,
+                    attribution: false
+                })
+            });
+
+            // 方案三 -- 采用动态生成dom叠加OverLay的方式，可以根据feature的个数添加多个
+            vector.getSource().getFeatures().forEach(function (feature) {
+                // 创建dom元素
+                var div = document.createElement("div");
+                div.className = "popup";
+                var overLay = new ol.Overlay({
+                    element: div,
+                    positioning:"center-center",
+                    position: feature.getGeometry().getCoordinates()
+                });
+                map.addOverlay(overLay);
+            });
+
+            // overlay容器
+            var container = document.getElementById('popup');
+            // overlay中body部分
+            var content = document.getElementById('popup-content');
+            // overlay中关闭按钮
+            var closer = document.getElementById('popup-closer');
+
+            // 初始化overlay
+            var overlay = new ol.Overlay({
+                element: container,
+                autoPan: true,
+                autoPanAnimation: {
+                    duration: 250   //当Popup超出地图边界时，为了Popup全部可见，地图移动的速度. 单位为毫秒（ms）
+                }
+            });
+
+            // 定义关闭按钮事件
+            closer.onclick = function (ev) {
+                overlay.setPosition(undefined); // 取消定位
+                closer.blur(); // 失去焦点
+                return false; // 防止事件继续冒泡
+            };
+
+            // 添加点击事件
+            map.on("click", function (event) {
+                var coordinate = event.coordinate; //3857
+                console.log(coordinate);
+                // var lnglat = ol.proj.transform(coordinate, "EPSG:3857", "EPSG:4326"); // 3857 -> 4326
+                // var hdms = ol.coordinate.toStringHDMS(lnglat); // 度分秒
+                // content.innerHTML = '<p>你点击的坐标是：</p><code>' + hdms + '</code>'; // 显示具体的内容
+                content.innerHTML = "汶川地震十周年，这是最好的纪念\n" +
+                    "大国重器，习近平为何如此重视\n" +
+                    "习近平引领中国经济新高度\n" +
+                    "李克强：全面恢复中日各领域对话合作机制\n" +
+                    "我与改革开放故事今起征集思想巨人伟大旗帜\n" +
+                    "述评：中国新开放释放世界新红利\n" +
+                    "这10个省市获得财政部奖励：5省份各获奖1.1亿\n" +
+                    "有一种奋斗叫中国力量——汶川地震灾后重建发展记\n" +
+                    "中国将WTO拉进梦游仙境？美洗白自己太拼\n" +
+                    "养老保险缴满15年不用再缴？权威说法在这里\n" +
+                    "美国半个世纪秘而不宣的这项技术被中国攻克了\n" +
+                    "交通部:一些网约车平台只看投资人脸色不顾乘客体验"; // 显示具体的内容
+                overlay.setPosition(coordinate); // 设置overlay显示的位置**坐标是3857
+                map.addOverlay(overlay);
+            });
+
+            // 添加移动事件
+            map.on("pointermove",function (event) {
+                if (event.dragging) {   //如果是拖动地图造成的鼠标移动，则不作处理
+                    return;
+                }
+                var pixel = map.getEventPixel(event.originalEvent);
+                var feature = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+                    return feature; // 搜索feature
+                });
+
+                if (feature) {
+                    highlightedLayer.getSource().clear(); // 先清空
+                    highlightedLayer.getSource().addFeature(feature); //再添加
+                }
+            });
+
+        }
+
+        function initCharts() {
+            echarts.init(document.getElementById('chart_bottom_1')).setOption(charts_1_option);
+            echarts.init(document.getElementById('chart_bottom_2')).setOption(charts_2_option);
+            echarts.init(document.getElementById('chart_right_3')).setOption(charts_3_option);
+            echarts.init(document.getElementById('chart_right_2')).setOption(charts_4_option);
+            echarts.init(document.getElementById('chart_right_1')).setOption(charts_5_option);
+        }
+    </script>
+</head>
+<body>
+<!--overlay-->
+<div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content"></div>
+</div>
+<div class="container">
+    <div class="map" id="map"></div>
+    <div class="content left_1" id="chart_left_1">
+        <video width="100%" height="100%" autoplay loop>
+            <source src="http://www.runoob.com/try/demo_source/movie.mp4" type="video/mp4">
+            <source src="movie.ogg" type="video/ogg">
+            您的浏览器不支持 HTML5 video 标签。
+        </video>
+    </div>
+    <div class="content left_2" id="chart_left_2">
+        <video width="100%" height="100%" autoplay loop>
+            <source src="http://www.runoob.com/try/demo_source/movie.mp4" type="video/mp4">
+            <source src="movie.ogg" type="video/ogg">
+            您的浏览器不支持 HTML5 video 标签。
+        </video>
+    </div>
+    <div class="content left_3" id="chart_left_3">
+        <table class="table">
+            <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>平时</th>
+                <th>期中</th>
+                <th>实验</th>
+                <th>其它</th>
+                <th>期末</th>
+                <th>总评</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+            </tr>
+            <tr class="alter">
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+            </tr>
+            <tr class="alter">
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+            </tr>
+            <tr class="alter">
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+            </tr>
+            <tr class="alter">
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+            </tr>
+            <tr class="alter">
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+            </tr>
+        </table>
+    </div>
+    <div class="content bottom_1" id="chart_bottom_1">
+    </div>
+    <div class="content bottom_2" id="chart_bottom_2">
+    </div>
+    <div class="content right_1" id="chart_right_1">
+    </div>
+    <div class="content right_2" id="chart_right_2">
+    </div>
+    <div class="content right_3" id="chart_right_3">
+    </div>
+</div>
+
+</body>
+</html>
